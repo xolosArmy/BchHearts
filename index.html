@@ -7,6 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/2.3.0/alpine.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bitcore-lib-cash@8.25.7/index.min.js"></script>
     <style>
         .bch-green { color: #4cca47; }
         .bch-orange { color: #f7941d; }
@@ -43,7 +44,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 bch-pattern" x-data="{ walletOpen: false, userLevel: 1, userXP: 50, totalXP: 100, bchPrice: 250, showNotification: false, notificationMessage: '' }">
+<body class="bg-gray-100 bch-pattern" x-data="{ walletOpen: false, userLevel: 1, userXP: 50, totalXP: 100, bchPrice: 250, showNotification: false, notificationMessage: '', bchAddress: '', bchBalance: 0, transactions: [], currentProfile: {name: 'Alice', age: 25, bio: 'Loves crypto and cats.'}, profiles: [], flipped: false }">
     <header class="bg-white bg-opacity-90 shadow-md sticky top-0 z-10">
         <div class="container mx-auto py-4 px-6 flex items-center justify-between">
             <div class="flex items-center">
@@ -75,85 +76,8 @@
         </div>
     </header>
 
-    <main class="container mx-auto mt-8 p-4" x-data="profiles()">
-        <section id="profile-swipe" class="bg-white bg-opacity-90 rounded-lg shadow-md p-6 mb-8 border-2 border-bch-green">
+    <main class="container mx-auto mt-8 p-4">
+        <section id="profile-swipe" class="bg-white bg-opacity-90 rounded-lg shadow-md p-6 mb-8 border-2 border-bch-green" x-data="profiles()">
             <h2 class="text-xl font-semibold mb-4 bch-orange">Today's BCH Matches</h2>
             <div class="flex items-center justify-between relative h-96">
-                <button class="bg-gray-300 text-gray-700 px-6 py-3 rounded-full hover:bg-gray-400 transition z-10" @click="swipeLeft()">↩ Pass</button>
-                <div class="profile-card absolute inset-0 w-3/4 mx-auto" :class="{ 'flipped': flipped }">
-                    <div class="profile-front bg-white rounded-lg shadow-lg p-6 flex flex-col items-center justify-center">
-                        <img :src="`/api/placeholder/200/200?text=${currentProfile.name}`" :alt="currentProfile.name" class="rounded-full mb-4 border-4 border-bch-orange">
-                        <p class="font-bold text-lg" x-text="`${currentProfile.name}, ${currentProfile.age}`"></p>
-                        <p class="text-gray-600 mb-4" x-text="currentProfile.bio"></p>
-                        <button @click="flipped = true" class="bg-bch-green text-white px-4 py-2 rounded-full hover:bg-green-600 transition">View Compatibility</button>
-                    </div>
-                    <div class="profile-back bg-white rounded-lg shadow-lg p-6 flex flex-col items-center justify-center">
-                        <h3 class="font-bold text-lg mb-4">Compatibility Chart</h3>
-                        <canvas id="compatibilityChart" width="200" height="200"></canvas>
-                        <button @click="flipped = false" class="mt-4 bg-bch-orange text-white px-4 py-2 rounded-full hover:bg-orange-500 transition">Back to Profile</button>
-                    </div>
-                </div>
-                <button class="bg-bch-orange text-white px-6 py-3 rounded-full hover:bg-orange-500 transition pulse z-10" @click="swipeRight()">Like ♥</button>
-            </div>
-            <p class="mt-4 text-center bch-green font-semibold">Swipe cost: 0.001 BCH</p>
-        </section>
-
-        <section id="wallet" class="bg-white bg-opacity-90 rounded-lg shadow-md p-6 border-2 border-bch-orange mb-8" x-show="walletOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-90" x-transition:enter-end="opacity-100 transform scale-100">
-            <h2 class="text-xl font-semibold mb-4 bch-green">Your BCH Wallet</h2>
-            <div class="flex justify-between items-center">
-                <p class="text-lg">Current balance: <span class="font-bold bch-orange" x-text="formatBCH(bchBalance)"></span></p>
-                <button class="bg-bch-green text-white px-4 py-2 rounded-full hover:bg-green-600 transition" @click="addFunds()">+ Add BCH</button>
-            </div>
-            <div class="mt-4">
-                <h3 class="font-semibold mb-2 bch-orange">Quick Send</h3>
-                <div class="flex">
-                    <input type="text" placeholder="BCH Address" class="flex-grow border rounded-l px-4 py-2 focus:outline-none focus:ring-2 focus:ring-bch-green">
-                    <button class="bg-bch-orange text-white px-4 py-2 rounded-r hover:bg-orange-500 transition">Send</button>
-                </div>
-            </div>
-            <div class="mt-4">
-                <h3 class="font-semibold mb-2 bch-orange">Transaction History</h3>
-                <ul class="space-y-2">
-                    <template x-for="tx in transactions" :key="tx.id">
-                        <li class="flex justify-between items-center">
-                            <span x-text="tx.description"></span>
-                            <span :class="tx.amount < 0 ? 'bch-green' : 'bch-orange'" x-text="formatBCH(tx.amount)"></span>
-                        </li>
-                    </template>
-                </ul>
-            </div>
-        </section>
-
-        <section id="bch-education" class="bg-white bg-opacity-90 rounded-lg shadow-md p-6 border-2 border-bch-green">
-            <h2 class="text-xl font-semibold mb-4 bch-orange">BCH Learning Hub</h2>
-            <p class="mb-4">Enhance your Bitcoin Cash knowledge and earn XP!</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="border border-bch-green rounded-lg p-4">
-                    <h3 class="font-semibold mb-2">What is Bitcoin Cash?</h3>
-                    <p class="mb-2">Learn about the fundamentals of BCH and its advantages.</p>
-                    <button class="bg-bch-green text-white px-4 py-2 rounded-full hover:bg-green-600 transition" @click="startLesson('BCH Fundamentals')">Start Lesson</button>
-                </div>
-                <div class="border border-bch-green rounded-lg p-4">
-                    <h3 class="font-semibold mb-2">BCH Transactions Explained</h3>
-                    <p class="mb-2">Understand how BCH transactions work and their benefits.</p>
-                    <button class="bg-bch-green text-white px-4 py-2 rounded-full hover:bg-green-600 transition" @click="startLesson('BCH Transactions')">Start Lesson</button>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <div class="fixed bottom-4 right-4 z-50" x-show="showNotification" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-y-2" x-transition:enter-end="opacity-100 transform translate-y-0" x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100 transform translate-y-0" x-transition:leave-end="opacity-0 transform translate-y-2">
-        <div class="bg-bch-green text-white px-4 py-2 rounded-lg shadow-lg">
-            <p x-text="notificationMessage"></p>
-        </div>
-    </div>
-
-    <footer class="bg-gray-800 bg-opacity-90 text-white p-4 mt-8">
-        <div class="container mx-auto text-center">
-            <p>&copy; 2024 BCHHearts. All rights reserved.</p>
-            <p class="mt-2">
-                <a href="#" class="hover:text-bch-orange transition duration-300">Privacy Policy</a> | 
-                <a href="#" class="hover:text-bch-orange transition duration-300">Terms of Service</a> | 
-                <a href="#" class="hover:text-bch-orange transition duration-300">Contact Us</a>
-            </p>
-        </div>
+                <button class="bg-gray-300 text-gray-700 px-6 py-3 rounded-full hover:bg-gray-400 transition z-10
