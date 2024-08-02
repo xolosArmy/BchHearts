@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/2.3.0/alpine.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bitcore-lib-cash@8.25.7/index.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
     <style>
         .bch-green { color: #4cca47; }
         .bch-orange { color: #f7941d; }
@@ -44,7 +45,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 bch-pattern" x-data="{ walletOpen: false, userLevel: 1, userXP: 50, totalXP: 100, bchPrice: 250, showNotification: false, notificationMessage: '', bchAddress: '', bchBalance: 0, transactions: [], currentProfile: {name: 'Alice', age: 25, bio: 'Loves crypto and cats.'}, profiles: [], flipped: false }">
+<body class="bg-gray-100 bch-pattern" x-data="app()">
     <header class="bg-white bg-opacity-90 shadow-md sticky top-0 z-10">
         <div class="container mx-auto py-4 px-6 flex items-center justify-between">
             <div class="flex items-center">
@@ -80,4 +81,126 @@
         <section id="profile-swipe" class="bg-white bg-opacity-90 rounded-lg shadow-md p-6 mb-8 border-2 border-bch-green" x-data="profiles()">
             <h2 class="text-xl font-semibold mb-4 bch-orange">Today's BCH Matches</h2>
             <div class="flex items-center justify-between relative h-96">
-                <button class="bg-gray-300 text-gray-700 px-6 py-3 rounded-full hover:bg-gray-400 transition z-10
+                <button class="bg-gray-300 text-gray-700 px-6 py-3 rounded-full hover:bg-gray-400 transition z-10">Previous</button>
+                <div class="relative w-full h-full">
+                    <div class="absolute inset-0 flex items-center justify-center" x-data="{ flipped: false }">
+                        <div class="profile-card" :class="{ flipped: flipped }">
+                            <div class="profile-front bg-white bg-opacity-90 rounded-lg shadow-md p-6 w-full h-full">
+                                <h3 class="text-lg font-bold bch-green">Alice</h3>
+                                <p class="text-gray-700">Loves crypto and cats. Age: 25</p>
+                            </div>
+                            <div class="profile-back bg-white bg-opacity-90 rounded-lg shadow-md p-6 w-full h-full">
+                                <h3 class="text-lg font-bold bch-orange">Alice's Bio</h3>
+                                <p class="text-gray-700">Alice loves everything about crypto and has a cute cat named Satoshi.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="bg-gray-300 text-gray-700 px-6 py-3 rounded-full hover:bg-gray-400 transition z-10">Next</button>
+            </div>
+        </section>
+        
+        <section id="wallet" class="bg-white bg-opacity-90 rounded-lg shadow-md p-6 mb-8 border-2 border-bch-green" x-show="walletOpen">
+            <h2 class="text-xl font-semibold mb-4 bch-orange">Bitcoin Cash Wallet</h2>
+            <div class="mb-4">
+                <label class="block text-gray-700">Wallet Address:</label>
+                <input type="text" class="w-full p-2 border rounded" x-model="bchAddress" readonly>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Balance:</label>
+                <p class="p-2 border rounded" x-text="bchBalance + ' BCH'"></p>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Amount to Send:</label>
+                <input type="text" class="w-full p-2 border rounded" x-model="sendAmount">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Recipient Address:</label>
+                <input type="text" class="w-full p-2 border rounded" x-model="recipientAddress">
+            </div>
+            <button class="bg-bch-green text-white px-4 py-2 rounded" @click="sendBCH">Send BCH</button>
+            <div class="mt-4">
+                <h3 class="text-lg font-semibold mb-2 bch-orange">Transactions</h3>
+                <ul>
+                    <li class="mb-2" x-for="tx in transactions">
+                        <span class="text-gray-700" x-text="tx.txid"></span> - <span class="text-gray-700" x-text="tx.amount + ' BCH'"></span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="photo-upload" class="bg-white bg-opacity-90 rounded-lg shadow-md p-6 mb-8 border-2 border-bch-green">
+            <h2 class="text-xl font-semibold mb-4 bch-orange">Upload Your Photo</h2>
+            <input type="file" @change="uploadPhoto">
+            <div class="mt-4">
+                <h3 class="text-lg font-semibold mb-2 bch-orange">Your Photo:</h3>
+                <img :src="userPhoto" alt="User Photo" class="w-32 h-32 rounded-full">
+            </div>
+        </section>
+    </main>
+
+    <script>
+        function app() {
+            return {
+                walletOpen: false,
+                userLevel: 1,
+                userXP: 50,
+                totalXP: 100,
+                bchPrice: 250,
+                showNotification: false,
+                notificationMessage: '',
+                bchAddress: '',
+                bchBalance: 0,
+                sendAmount: '',
+                recipientAddress: '',
+                transactions: [],
+                userPhoto: '',
+                profiles() {
+                    return {
+                        currentProfile: {name: 'Alice', age: 25, bio: 'Loves crypto and cats.'},
+                        profiles: [],
+                        flipped: false
+                    }
+                },
+                async createWallet() {
+                    const privateKey = new bitcore.PrivateKey();
+                    this.bchAddress = privateKey.toAddress().toString();
+                    // Store private key securely in your backend or localStorage (not recommended for production)
+                    console.log('Private Key:', privateKey.toString());
+                },
+                async checkBalance() {
+                    try {
+                        const response = await axios.get(`https://api.fullstack.cash/v5/electrumx/balance/${this.bchAddress}`);
+                        this.bchBalance = response.data.balance.confirmed / 1e8;
+                    } catch (error) {
+                        console.error('Error checking balance:', error);
+                    }
+                },
+                async sendBCH() {
+                    // Implement BCH sending functionality here
+                    console.log('Send BCH:', this.sendAmount, 'to', this.recipientAddress);
+                },
+                async uploadPhoto(event) {
+                    const file = event.target.files[0];
+                    const formData = new FormData();
+                    formData.append('photo', file);
+                    try {
+                        const response = await axios.post('https://your-photo-upload-api.com/upload', formData, {
+                            headers: {
+                                'Content-Type': 'multipart/form-data'
+                            }
+                        });
+                        this.userPhoto = response.data.url;
+                    } catch (error) {
+                        console.error('Error uploading photo:', error);
+                    }
+                },
+                async init() {
+                    await this.createWallet();
+                    await this.checkBalance();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
