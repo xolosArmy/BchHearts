@@ -83,11 +83,39 @@
         </div>
 
         <!-- Send BCH Section -->
-        <div class="bg-white shadow-md rounded-lg p-6">
+        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
             <h2 class="text-xl font-bold bch-green mb-4">Send Bitcoin Cash (BCH)</h2>
             <input type="text" id="bchAddress" placeholder="Recipient BCH Address" class="border border-gray-300 rounded-lg p-2 w-full mb-4">
             <input type="number" id="bchAmount" placeholder="Amount in BCH" class="border border-gray-300 rounded-lg p-2 w-full mb-4">
             <button id="sendBCHButton" class="bg-bch-green text-white rounded-lg p-2 w-full">Send BCH</button>
+        </div>
+
+        <!-- View Matches Section -->
+        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-bold bch-green mb-4">Your Matches</h2>
+            <div id="matches" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Example Match Card -->
+                <div class="bg-gray-100 shadow-md rounded-lg p-4 profile-card" @click="toggleCard($event)">
+                    <div class="profile-front">
+                        <img src="example.jpg" alt="Match Photo" class="rounded-lg w-full h-40 object-cover">
+                        <h3 class="text-lg font-bold bch-green mt-2">Jane Doe</h3>
+                        <p class="text-gray-600">Age: 25</p>
+                    </div>
+                    <div class="profile-back">
+                        <p class="text-gray-600">Interests: Hiking, Reading, Traveling</p>
+                        <p class="text-gray-600">Bio: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin ac ex vel libero viverra efficitur.</p>
+                    </div>
+                </div>
+                <!-- Add more match cards as needed -->
+            </div>
+        </div>
+
+        <!-- Swap Section -->
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-bold bch-green mb-4">Swap Bitcoin Cash (BCH)</h2>
+            <input type="text" id="swapAddress" placeholder="Recipient BCH Address" class="border border-gray-300 rounded-lg p-2 w-full mb-4">
+            <input type="number" id="swapAmount" placeholder="Amount in BCH" class="border border-gray-300 rounded-lg p-2 w-full mb-4">
+            <button id="swapBCHButton" class="bg-bch-green text-white rounded-lg p-2 w-full">Swap BCH</button>
         </div>
     </main>
 
@@ -98,6 +126,95 @@
     </footer>
 
     <!-- Include the frontend.js file -->
-    <script src="frontend.js"></script>
+    <script>
+        const backendURL = 'https://bch-hearts-k5wq722xi-xolosarmy-networks-projects.vercel.app';
+
+        document.getElementById('fileInput').addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('profilePhoto', file);
+
+                try {
+                    const response = await fetch(`${backendURL}/upload-photo`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        document.getElementById('uploadedPhoto').innerHTML = `<img src="${data.url}" alt="Uploaded Photo" class="rounded-lg w-32 h-32 object-cover">`;
+                        alert('Photo uploaded successfully!');
+                    } else {
+                        alert('Failed to upload photo.');
+                    }
+                } catch (error) {
+                    console.error('Error uploading photo:', error);
+                    alert('Error uploading photo.');
+                }
+            }
+        });
+
+        document.getElementById('sendBCHButton').addEventListener('click', async () => {
+            const address = document.getElementById('bchAddress').value;
+            const amount = document.getElementById('bchAmount').value;
+
+            if (address && amount) {
+                try {
+                    const response = await fetch(`${backendURL}/send-bch`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ address, amount })
+                    });
+
+                    if (response.ok) {
+                        alert('BCH sent successfully!');
+                    } else {
+                        alert('Failed to send BCH.');
+                    }
+                } catch (error) {
+                    console.error('Error sending BCH:', error);
+                    alert('Error sending BCH.');
+                }
+            } else {
+                alert('Please enter both an address and an amount.');
+            }
+        });
+
+        document.getElementById('swapBCHButton').addEventListener('click', async () => {
+            const address = document.getElementById('swapAddress').value;
+            const amount = document.getElementById('swapAmount').value;
+
+            if (address && amount) {
+                try {
+                    const response = await fetch(`${backendURL}/swap-bch`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ address, amount })
+                    });
+
+                    if (response.ok) {
+                        alert('BCH swapped successfully!');
+                    } else {
+                        alert('Failed to swap BCH.');
+                    }
+                } catch (error) {
+                    console.error('Error swapping BCH:', error);
+                    alert('Error swapping BCH.');
+                }
+            } else {
+                alert('Please enter both an address and an amount.');
+            }
+        });
+
+        function toggleCard(event) {
+            const card = event.currentTarget;
+            card.classList.toggle('flipped');
+        }
+    </script>
 </body>
 </html>
