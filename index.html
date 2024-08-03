@@ -1,33 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BCH Hearts - Bitcoin Cash Dating Revolution</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/2.3.0/alpine.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/2.8.0/alpine.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
-        .bch-green { color: #4cca47; }
-        .bch-orange { color: #f7941d; }
-        .bg-bch-green { background-color: #4cca47; }
-        .bg-bch-orange { background-color: #f7941d; }
-        .border-bch-green { border-color: #4cca47; }
-        .border-bch-orange { border-color: #f7941d; }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        .bch-green {
+            color: #4cca47;
         }
-        .pulse { animation: pulse 2s infinite; }
+
+        .bch-orange {
+            color: #f7941d;
+        }
+
+        .bg-bch-green {
+            background-color: #4cca47;
+        }
+
+        .bg-bch-orange {
+            background-color: #f7941d;
+        }
+
+        .border-bch-green {
+            border-color: #4cca47;
+        }
+
+        .border-bch-orange {
+            border-color: #f7941d;
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
         .profile-card {
             perspective: 1000px;
             transition: transform 0.8s;
             transform-style: preserve-3d;
         }
+
         .profile-card.flipped {
             transform: rotateY(180deg);
         }
-        .profile-front, .profile-back {
+
+        .profile-front,
+        .profile-back {
             backface-visibility: hidden;
             position: absolute;
             top: 0;
@@ -35,27 +67,50 @@
             width: 100%;
             height: 100%;
         }
+
         .profile-back {
             transform: rotateY(180deg);
         }
+
         .bch-pattern {
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%234cca47' fill-opacity='0.1'%3E%3Cpath d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h2l-2 2V0zm0 4l4-4h2l-6 6V4zm0 4l8-8h2L40 10V8zm0 4L52 0h2L40 14v-2zm0 4L56 0h2L40 18v-2zm0 4L60 0h2L40 22v-2zm0 4L64 0h2L40 26v-2zm0 4L68 0h2L40 30v-2zm0 4L72 0h2L40 34v-2zm0 4L76 0h2L40 38v-2zm0 4L80 0v2L42 40h-2zm4 0L80 4v2L46 40h-2zm4 0L80 8v2L50 40h-2zm4 0l28-28v2L54 40h-2zm4 0l24-24v2L58 40h-2zm4 0l20-20v2L62 40h-2zm4 0l16-16v2L66 40h-2zm4 0l12-12v2L70 40h-2zm4 0l8-8v2l-6 6h-2zm4 0l4-4v2l-2 2h-2z'/%3E%3C/g%3E%3C/svg%3E");
         }
+
+        .toggle-menu {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .toggle-menu {
+                display: block;
+            }
+
+            .menu {
+                display: none;
+            }
+
+            .menu.open {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-100 bch-pattern" x-data="{ walletOpen: false, userLevel: 1, userXP: 50, totalXP: 100, bchPrice: 250, showNotification: false, notificationMessage: '' }">
+
+<body class="bg-gray-100 bch-pattern" x-data="{ walletOpen: false, userLevel: 1, userXP: 50, totalXP: 100, bchPrice: 250, showNotification: false, notificationMessage: '', menuOpen: false }">
     <header class="bg-white bg-opacity-90 shadow-md sticky top-0 z-10">
         <div class="container mx-auto py-4 px-6 flex items-center justify-between">
             <div class="flex items-center">
                 <svg class="w-10 h-10 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="11" fill="#4cca47" stroke="#f7941d" stroke-width="2"/>
-                    <path d="M15.5 9.5C15.5 8.11929 14.3807 7 13 7H9V12H13C14.3807 12 15.5 10.8807 15.5 9.5Z" fill="#f7941d"/>
-                    <path d="M15.5 14.5C15.5 13.1193 14.3807 12 13 12H9V17H13C14.3807 17 15.5 15.8807 15.5 14.5Z" fill="#f7941d"/>
-                    <path d="M13 7H11V17H13C15.7614 17 18 14.7614 18 12C18 9.23858 15.7614 7 13 7Z" fill="#ffffff"/>
+                    <circle cx="12" cy="12" r="11" fill="#4cca47" stroke="#f7941d" stroke-width="2" />
+                    <path d="M15.5 9.5C15.5 8.11929 14.3807 7 13 7H9V12H13C14.3807 12 15.5 10.8807 15.5 9.5Z" fill="#f7941d" />
+                    <path d="M15.5 14.5C15.5 13.1193 14.3807 12 13 12H9V17H13C14.3807 17 15.5 15.8807 15.5 14.5Z" fill="#f7941d" />
+                    <path d="M13 7H11V17H13C15.7614 17 18 14.7614 18 12C18 9.23858 15.7614 7 13 7Z" fill="#ffffff" />
                 </svg>
                 <h1 class="text-2xl font-bold bch-green">BCH<span class="bch-orange">Hearts</span></h1>
             </div>
-            <nav class="hidden md:flex items-center space-x-6">
+            <nav class="hidden md:flex items-center space-x-6 menu" :class="menuOpen ? 'open' : ''">
                 <a href="#" class="bch-green hover:text-green-700 transition duration-300">Home</a>
                 <a href="#" class="bch-green hover:text-green-700 transition duration-300">Matches</a>
                 <a href="#" class="bch-green hover:text-green-700 transition duration-300" @click="walletOpen = !walletOpen">Wallet</a>
@@ -66,9 +121,9 @@
                     </div>
                 </div>
             </nav>
-            <button class="md:hidden bch-green hover:text-green-700 transition duration-300 focus:outline-none">
+            <button class="md:hidden bch-green hover:text-green-700 transition duration-300 focus:outline-none" @click="menuOpen = !menuOpen">
                 <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
             </button>
         </div>
@@ -87,19 +142,22 @@
             <h2 class="text-xl font-bold bch-green mb-4">Send Bitcoin Cash (BCH)</h2>
             <input type="text" id="bchAddress" placeholder="Recipient BCH Address" class="border border-gray-300 rounded-lg p-2 w-full mb-4">
             <input type="number" id="bchAmount" placeholder="Amount in BCH" class="border border-gray-300 rounded-lg p-2 w-full mb-4">
-            <button id="sendBCHButton" class="bg-bch-green text-white rounded-lg p-2 w-full">Send BCH</button>
+            <button id="sendBCHButton" class="bg-bch-green text-white rounded-lg p-2 w-full hover:bg-green-700 transition duration-300">Send BCH</button>
         </div>
 
         <!-- View Matches Section -->
         <div class="bg-white shadow-md rounded-lg p-6 mb-8">
-            <h2 class="text-xl font-bold bch-green mb-4">Your Matches</h2>
-            <div id="matches" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <h2 class="text-xl font-bold bch-green mb-4">View Matches</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Example Match Card -->
                 <div class="bg-gray-100 shadow-md rounded-lg p-4 profile-card" @click="toggleCard($event)">
-                    <div class="profile-front">
+                    <div class="profile-front relative">
                         <img src="example.jpg" alt="Match Photo" class="rounded-lg w-full h-40 object-cover">
                         <h3 class="text-lg font-bold bch-green mt-2">Jane Doe</h3>
                         <p class="text-gray-600">Age: 25</p>
+                        <div class="absolute inset-0 bg-black bg-opacity-25 flex items-center justify-center opacity-0 hover:opacity-100 transition duration-300">
+                            <button class="bg-white text-bch-green font-bold py-2 px-4 rounded-lg hover:bg-gray-200 transition duration-300">View Profile</button>
+                        </div>
                     </div>
                     <div class="profile-back">
                         <p class="text-gray-600">Interests: Hiking, Reading, Traveling</p>
@@ -110,12 +168,12 @@
             </div>
         </div>
 
-        <!-- Swap Section -->
+        <!-- Swap BCH Section -->
         <div class="bg-white shadow-md rounded-lg p-6">
             <h2 class="text-xl font-bold bch-green mb-4">Swap Bitcoin Cash (BCH)</h2>
             <input type="text" id="swapAddress" placeholder="Recipient BCH Address" class="border border-gray-300 rounded-lg p-2 w-full mb-4">
             <input type="number" id="swapAmount" placeholder="Amount in BCH" class="border border-gray-300 rounded-lg p-2 w-full mb-4">
-            <button id="swapBCHButton" class="bg-bch-green text-white rounded-lg p-2 w-full">Swap BCH</button>
+            <button id="swapBCHButton" class="bg-bch-green text-white rounded-lg p-2 w-full hover:bg-green-700 transition duration-300">Swap BCH</button>
         </div>
     </main>
 
@@ -217,4 +275,5 @@
         }
     </script>
 </body>
+
 </html>
