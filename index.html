@@ -7,8 +7,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/2.3.0/alpine.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bitcore-lib-cash@8.25.7/index.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
     <style>
         .bch-green { color: #4cca47; }
         .bch-orange { color: #f7941d; }
@@ -78,57 +76,27 @@
     </header>
 
     <main class="container mx-auto mt-8 p-4">
-        <section id="profile-swipe" class="bg-white bg-opacity-90 rounded-lg shadow-md p-6 mb-8 border-2 border-bch-green" x-data="profiles()">
+        <section id="profile-swipe" class="bg-white bg-opacity-90 rounded-lg shadow-md p-6 mb-8 border-2 border-bch-green">
             <h2 class="text-xl font-semibold mb-4 bch-orange">Today's BCH Matches</h2>
             <div class="flex items-center justify-between relative h-96">
-                <button class="bg-gray-300 text-gray-700 px-6 py-3 rounded-full hover:bg-gray-400 transition z-10">Previous</button>
-                <div class="relative w-full h-full">
-                    <div class="absolute inset-0 flex items-center justify-center" x-data="{ flipped: false }">
-                        <div class="profile-card" :class="{ flipped: flipped }">
-                            <div class="profile-front bg-white bg-opacity-90 rounded-lg shadow-md p-6 w-full h-full">
-                                <h3 class="text-lg font-bold bch-green">Alice</h3>
-                                <p class="text-gray-700">Loves crypto and cats. Age: 25</p>
-                            </div>
-                            <div class="profile-back bg-white bg-opacity-90 rounded-lg shadow-md p-6 w-full h-full">
-                                <h3 class="text-lg font-bold bch-orange">Alice's Bio</h3>
-                                <p class="text-gray-700">Alice loves everything about crypto and has a cute cat named Satoshi.</p>
-                            </div>
-                        </div>
+                <button class="bg-gray-300 text-gray-700 px-6 py-3 rounded-full hover:bg-gray-400 transition z-10" @click="swipeLeft()">↩ Pass</button>
+                <div class="profile-card absolute inset-0 w-3/4 mx-auto" :class="{ 'flipped': flipped }">
+                    <div class="profile-front bg-white rounded-lg shadow-lg p-6 flex flex-col items-center justify-center">
+                        <img :src="`/api/placeholder/200/200?text=${currentProfile.name}`" :alt="currentProfile.name" class="rounded-full mb-4 border-4 border-bch-orange">
+                        <p class="font-bold text-lg" x-text="`${currentProfile.name}, ${currentProfile.age}`"></p>
+                        <p class="text-gray-600 mb-4" x-text="currentProfile.bio"></p>
+                        <button @click="flipped = true" class="bg-bch-green text-white px-4 py-2 rounded-full hover:bg-green-600 transition">View Compatibility</button>
+                    </div>
+                    <div class="profile-back bg-white rounded-lg shadow-lg p-6 flex flex-col items-center justify-center">
+                        <h3 class="font-bold text-lg mb-4">Compatibility Chart</h3>
+                        <canvas id="compatibilityChart" width="200" height="200"></canvas>
+                        <button @click="flipped = false" class="bg-bch-green text-white px-4 py-2 rounded-full hover:bg-green-600 transition mt-4">Back to Profile</button>
                     </div>
                 </div>
-                <button class="bg-gray-300 text-gray-700 px-6 py-3 rounded-full hover:bg-gray-400 transition z-10">Next</button>
+                <button class="bg-bch-orange text-white px-6 py-3 rounded-full hover:bg-orange-600 transition z-10" @click="swipeRight()">❤️ Like</button>
             </div>
         </section>
-        
-        <section id="wallet" class="bg-white bg-opacity-90 rounded-lg shadow-md p-6 mb-8 border-2 border-bch-green" x-show="walletOpen">
-            <h2 class="text-xl font-semibold mb-4 bch-orange">Bitcoin Cash Wallet</h2>
-            <div class="mb-4">
-                <label class="block text-gray-700">Wallet Address:</label>
-                <input type="text" class="w-full p-2 border rounded" x-model="bchAddress" readonly>
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700">Balance:</label>
-                <p class="p-2 border rounded" x-text="bchBalance + ' BCH'"></p>
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700">Amount to Send:</label>
-                <input type="text" class="w-full p-2 border rounded" x-model="sendAmount">
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700">Recipient Address:</label>
-                <input type="text" class="w-full p-2 border rounded" x-model="recipientAddress">
-            </div>
-            <button class="bg-bch-green text-white px-4 py-2 rounded" @click="sendBCH">Send BCH</button>
-            <div class="mt-4">
-                <h3 class="text-lg font-semibold mb-2 bch-orange">Transactions</h3>
-                <ul>
-                    <li class="mb-2" x-for="tx in transactions">
-                        <span class="text-gray-700" x-text="tx.txid"></span> - <span class="text-gray-700" x-text="tx.amount + ' BCH'"></span>
-                    </li>
-                </ul>
-            </div>
-        </section>
-        
+
         <section id="photo-upload" class="bg-white bg-opacity-90 rounded-lg shadow-md p-6 mb-8 border-2 border-bch-green">
             <h2 class="text-xl font-semibold mb-4 bch-orange">Upload Your Photo</h2>
             <input type="file" @change="uploadPhoto">
@@ -137,8 +105,39 @@
                 <img :src="userPhoto" alt="User Photo" class="w-32 h-32 rounded-full">
             </div>
         </section>
+
+        <section id="wallet-section" class="bg-white bg-opacity-90 rounded-lg shadow-md p-6 mb-8 border-2 border-bch-green" x-show="walletOpen">
+            <h2 class="text-xl font-semibold mb-4 bch-orange">Wallet</h2>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="bch-address">BCH Address</label>
+                <input type="text" id="bch-address" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" x-model="bchAddress" readonly>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="bch-balance">BCH Balance</label>
+                <input type="text" id="bch-balance" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" x-model="bchBalance" readonly>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="send-amount">Send Amount (BCH)</label>
+                <input type="number" id="send-amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" x-model="sendAmount">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="recipient-address">Recipient Address</label>
+                <input type="text" id="recipient-address" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" x-model="recipientAddress">
+            </div>
+            <button @click="sendBCH()" class="bg-bch-orange text-white px-4 py-2 rounded-full hover:bg-orange-600 transition">Send BCH</button>
+            <div class="mt-4">
+                <h3 class="text-lg font-semibold mb-2 bch-orange">Transaction History</h3>
+                <ul>
+                    <li x-for="transaction in transactions" :key="transaction.txid" class="mb-2">
+                        <span class="font-bold">TxID:</span> <span x-text="transaction.txid"></span> <span class="font-bold">Amount:</span> <span x-text="transaction.amount"></span> BCH
+                    </li>
+                </ul>
+            </div>
+        </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bitcore-lib-cash"></script>
     <script>
         function app() {
             return {
@@ -165,6 +164,7 @@
                 async createWallet() {
                     const privateKey = new bitcore.PrivateKey();
                     this.bchAddress = privateKey.toAddress().toString();
+                    this.privateKeyWIF = privateKey.toWIF();
                     // Store private key securely in your backend or localStorage (not recommended for production)
                     console.log('Private Key:', privateKey.toString());
                 },
@@ -177,15 +177,26 @@
                     }
                 },
                 async sendBCH() {
-                    // Implement BCH sending functionality here
-                    console.log('Send BCH:', this.sendAmount, 'to', this.recipientAddress);
+                    try {
+                        const response = await axios.post('/sendBCH', {
+                            privateKeyWIF: this.privateKeyWIF,
+                            recipientAddress: this.recipientAddress,
+                            amount: this.sendAmount
+                        });
+                        this.transactions.push({ txid: response.data.txid, amount: this.sendAmount });
+                        this.checkBalance();
+                        this.sendAmount = '';
+                        this.recipientAddress = '';
+                    } catch (error) {
+                        console.error('Error sending BCH:', error);
+                    }
                 },
                 async uploadPhoto(event) {
                     const file = event.target.files[0];
                     const formData = new FormData();
                     formData.append('photo', file);
                     try {
-                        const response = await axios.post('https://your-photo-upload-api.com/upload', formData, {
+                        const response = await axios.post('/upload', formData, {
                             headers: {
                                 'Content-Type': 'multipart/form-data'
                             }
