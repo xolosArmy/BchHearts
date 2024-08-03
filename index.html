@@ -173,6 +173,10 @@
             <h2 class="text-xl font-bold bch-green mb-4">Swap Bitcoin Cash (BCH)</h2>
             <input type="text" id="swapAddress" placeholder="Recipient BCH Address" class="border border-gray-300 rounded-lg p-2 w-full mb-4">
             <input type="number" id="swapAmount" placeholder="Amount in BCH" class="border border-gray-300 rounded-lg p-2 w-full mb-4">
+            <div class="mb-4">
+                <label for="swapCost" class="block text-gray-700">Swap Cost (in satoshis):</label>
+                <input type="number" id="swapCost" value="1000" class="border border-gray-300 rounded-lg p-2 w-full" readonly>
+            </div>
             <button id="swapBCHButton" class="bg-bch-green text-white rounded-lg p-2 w-full hover:bg-green-700 transition duration-300">Swap BCH</button>
         </div>
     </main>
@@ -244,6 +248,7 @@
         document.getElementById('swapBCHButton').addEventListener('click', async () => {
             const address = document.getElementById('swapAddress').value;
             const amount = document.getElementById('swapAmount').value;
+            const cost = document.getElementById('swapCost').value;
 
             if (address && amount) {
                 try {
@@ -252,7 +257,7 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ address, amount })
+                        body: JSON.stringify({ address, amount, cost })
                     });
 
                     if (response.ok) {
