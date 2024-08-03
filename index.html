@@ -82,28 +82,24 @@
             <div id="uploadedPhoto" class="mt-4"></div>
         </div>
 
-        <!-- Create BCH Wallet Section -->
-        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
-            <h2 class="text-xl font-bold bch-green mb-4">Create Bitcoin Cash Wallet</h2>
-            <button id="createWalletButton" class="bg-bch-green text-white rounded-lg p-2 w-full">Create Wallet</button>
-            <div id="walletInfo" class="mt-4"></div>
-        </div>
-
-        <!-- Swap BCH Section -->
-        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
-            <h2 class="text-xl font-bold bch-green mb-4">Swap Bitcoin Cash (BCH)</h2>
-            <input type="text" id="swapAddress" placeholder="Swap Recipient BCH Address" class="border border-gray-300 rounded-lg p-2 w-full mb-4">
-            <input type="number" id="swapAmount" placeholder="Amount in BCH" class="border border-gray-300 rounded-lg p-2 w-full mb-4">
-            <button id="swapBCHButton" class="bg-bch-green text-white rounded-lg p-2 w-full">Swap BCH</button>
-                       <p class="mt-2 text-gray-500">Each swap incurs a fee of <span id="swapFee">0</span> satoshis, which will be deducted from your balance.</p>
-        </div>
-
         <!-- Send BCH Section -->
-        <div class="bg-white shadow-md rounded-lg p-6">
+        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
             <h2 class="text-xl font-bold bch-green mb-4">Send Bitcoin Cash (BCH)</h2>
             <input type="text" id="bchAddress" placeholder="Recipient BCH Address" class="border border-gray-300 rounded-lg p-2 w-full mb-4">
             <input type="number" id="bchAmount" placeholder="Amount in BCH" class="border border-gray-300 rounded-lg p-2 w-full mb-4">
-            <button id="sendBCHButton" class="bg-bch-green text-white rounded-lg p-2 w-full">Send BCH</button>
+            <input type="number" id="swapFee" placeholder="Swap Fee (in satoshis)" class="border border-gray-300 rounded-lg p-2 w-full mb-4">
+                        <button id="sendBCHButton" class="bg-bch-green text-white rounded-lg p-2 w-full">Send BCH</button>
+        </div>
+
+        <!-- Create Wallet Section -->
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-bold bch-green mb-4">Create Personal BCH Wallet</h2>
+            <button id="createWalletButton" class="bg-bch-green text-white rounded-lg p-2 w-full">Create Wallet</button>
+            <div id="walletDetails" class="mt-4 hidden">
+                <h3 class="text-lg font-bold bch-green mb-2">Your Wallet Details</h3>
+                <p><strong>Address:</strong> <span id="walletAddress"></span></p>
+                <p><strong>Private Key:</strong> <span id="privateKey"></span></p>
+            </div>
         </div>
     </main>
 
